@@ -193,7 +193,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--fondo);color:var(--texto
       <div class="serie-block-title" style="color:var(--verde)"><i class="ti ti-arrow-up-circle"></i> Recambio / Nuevo que SALE</div>
       <div class="serie-row">
         <div class="form-group"><label><i class="ti ti-hash" style="font-size:13px;color:var(--verde)"></i> N° de serie entregado</label><input type="text" id="serie-salida" class="input-serie" placeholder="Ej: 123456" autocomplete="off" style="border-color:var(--verde)!important"></div>
-        <div class="form-group"><label>Vto. próxima recarga</label><input type="text" id="serie-vto" placeholder="Ej: 06/2027"></div>
+        <div class="form-group"><label>Vto. próxima recarga</label><input type="text" id="serie-vto" placeholder="Ej: 15/06/2027"></div>
       </div>
     </div>
     <hr class="divider">
@@ -507,11 +507,90 @@ function actualizarTotal(){let total=0;const names=[];PRODUCTOS.forEach(p=>{cons
 function actualizarPolvo(){document.getElementById('alerta-polvo').classList.toggle('hidden',document.getElementById('requiere-polvo').value!=='si');}
 function checkApto(){document.getElementById('alerta-no-apto').classList.toggle('hidden',document.getElementById('envase-apto').value!=='no');}
 
+
+// ===== VALIDACIONES =====
+function validarEmail(email){if(!email)return true;return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
+function validarPatente(pat){if(!pat)return true;return /^[A-Z]{2}\d{3}[A-Z]{2}$|^[A-Z]{3}\d{3}$/.test(pat.toUpperCase());}
+function validarSerie(serie){if(!serie)return true;return /^\d+$/.test(serie.trim());}
+function validarTel(tel){if(!tel)return true;return /^[\d\s\-\+\(\)]{6,20}$/.test(tel);}
+function validarVto(vto){if(!vto)return true;return /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(vto);}
+function marcarError(id,msg){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.borderColor='var(--rojo)';el.style.borderWidth='2px';
+  let err=el.parentNode.querySelector('.campo-error');
+  if(!err){err=document.createElement('span');err.className='campo-error';err.style.cssText='color:var(--rojo);font-size:11px;margin-top:2px;display:block';el.parentNode.appendChild(err);}
+  err.textContent='⚠ '+msg;
+}
+function limpiarError(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.borderColor='';el.style.borderWidth='';
+  const err=el.parentNode.querySelector('.campo-error');if(err)err.remove();
+}
+function validarFormularioVenta(){
+  let ok=true;
+  const email=document.getElementById('cli-email').value.trim();
+  const patente=document.getElementById('cli-patente').value.trim().toUpperCase();
+  const serieEntrada=document.getElementById('serie-entrada').value.trim();
+  const serieSalida=document.getElementById('serie-salida').value.trim();
+  const serieVto=document.getElementById('serie-vto').value.trim();
+  const tel=document.getElementById('cli-tel').value.trim();
+  limpiarError('cli-email');limpiarError('cli-patente');limpiarError('serie-entrada');limpiarError('serie-salida');limpiarError('serie-vto');limpiarError('cli-tel');
+  if(email&&!validarEmail(email)){marcarError('cli-email','Formato inválido. Ej: nombre@gmail.com');ok=false;}
+  if(patente&&!validarPatente(patente)){marcarError('cli-patente','Formato inválido. Ej: ABC123 o AB123CD');ok=false;}
+  if(serieEntrada&&!validarSerie(serieEntrada)){marcarError('serie-entrada','Solo números');ok=false;}
+  if(serieVto&&!validarVto(serieVto)){marcarError('serie-vto','Formato: DD/MM/AAAA. Ej: 15/06/2027');ok=false;}
+  if(tel&&!validarTel(tel)){marcarError('cli-tel','Solo números, guiones o espacios');ok=false;}
+  if(tieneSerieSalida()){
+    if(!serieSalida){marcarError('serie-salida','Obligatorio para Recambio/Nuevo');ok=false;}
+    else if(!validarSerie(serieSalida)){marcarError('serie-salida','Solo números');ok=false;}
+  }
+  return ok;
+}
+// Validación en tiempo real
+function initValidacionesLive(){
+  const campos=[
+    {id:'cli-email',fn:validarEmail,msg:'Formato inválido. Ej: nombre@gmail.com'},
+    {id:'cli-patente',fn:(v)=>validarPatente(v),msg:'Formato inválido. Ej: ABC123 o AB123CD'},
+    {id:'serie-entrada',fn:validarSerie,msg:'Solo números'},
+    {id:'serie-salida',fn:validarSerie,msg:'Solo números'},
+    {id:'serie-vto',fn:validarVto,msg:'Formato: DD/MM/AAAA. Ej: 15/06/2027'},
+    {id:'cli-tel',fn:validarTel,msg:'Solo números, guiones o espacios'},
+  ];
+  campos.forEach(({id,fn,msg})=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('blur',()=>{
+      const v=el.value.trim();
+      if(v&&!fn(v))marcarError(id,msg);else limpiarError(id);
+    });
+    el.addEventListener('input',()=>{if(el.parentNode.querySelector('.campo-error'))limpiarError(id);});
+  });
+  // Patente: auto uppercase
+  const pat=document.getElementById('cli-patente');
+  if(pat)pat.addEventListener('input',()=>{const pos=pat.selectionStart;pat.value=pat.value.toUpperCase();pat.setSelectionRange(pos,pos);});
+  // Serie: solo números
+  ['serie-entrada','serie-salida'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('input',()=>{el.value=el.value.replace(/[^\d]/g,'');});
+  });
+  // Vto: auto formato DD/MM/AAAA
+  const vto=document.getElementById('serie-vto');
+  if(vto)vto.addEventListener('input',(e)=>{
+    let v=vto.value.replace(/[^\d]/g,'');
+    if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4,8);
+    else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+    vto.value=v;
+  });
+  // Tel: solo números, guiones, espacios
+  const tel=document.getElementById('cli-tel');
+  if(tel)tel.addEventListener('input',()=>{tel.value=tel.value.replace(/[^\d\s\-\+\(\)]/g,'');});
+}
+
 // ===== VENTA =====
 async function registrarVenta(){
   if(!estado.metodoPago){alert('Seleccioná un método de pago');return;}
   if(!Object.keys(estado.seleccionados).length){alert('Seleccioná al menos un producto');return;}
-  if(tieneSerieSalida()&&!document.getElementById('serie-salida').value.trim()){alert('Ingresá el N° de serie del recambio/nuevo que entregás al cliente');return;}
+  if(!validarFormularioVenta()){alert('Revisá los campos marcados en rojo antes de continuar.');return;}
   const nombre=document.getElementById('cli-nombre').value.trim()||'Sin nombre';
   const tel=document.getElementById('cli-tel').value.trim();
   const email=document.getElementById('cli-email').value.trim();
@@ -739,6 +818,7 @@ function calcH(e,s){try{const[h1,m1,s1]=e.split(':').map(Number);const[h2,m2,s2]
 
 // ===== INIT =====
 renderProductos();
+initValidacionesLive();
 document.getElementById('remito-fecha').value=new Date().toISOString().split('T')[0];
 document.querySelectorAll('.lbl-puesto').forEach(el=>el.textContent=estado.puesto);
 if(!navigator.onLine){document.getElementById('offline-banner').classList.add('show');}
