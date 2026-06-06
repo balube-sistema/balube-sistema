@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BALUBE Sistema</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--rojo:#C0392B;--rojo-light:#FADBD8;--rojo-dark:#922B21;
+--gris:#2C3E50;--gris-medio:#566573;--gris-claro:#ECF0F1;
+--verde:#1E8449;--verde-light:#D5F5E3;
+--amarillo:#D4AC0D;--amarillo-light:#FEF9E7;
+--azul:#1A5276;--azul-light:#D6EAF8;
+--violeta:#6C3483;--violeta-light:#E8DAEF;
+--naranja:#CA6F1E;--naranja-light:#FAE5D3;
+--fondo:#F4F6F7;--borde:#D5D8DC;--texto:#1C2833;--texto-sec:#566573;
+--radio:6px;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--fondo);color:var(--texto);min-height:100vh}
+.app-header{background:var(--gris);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px}
+.app-logo{font-size:20px;font-weight:700;letter-spacing:2px;color:#fff}
+.app-logo span{color:#E74C3C}
+.header-info{display:flex;align-items:center;gap:10px;font-size:13px;color:#BDC3C7;flex-wrap:wrap}
+.header-info select{background:#3D5166;border:none;color:#fff;padding:4px 8px;border-radius:4px;font-size:13px;cursor:pointer}
+.clock{font-weight:600;color:#E8DAEF;font-variant-numeric:tabular-nums}
+.sync-pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;cursor:pointer;transition:all .2s}
+.sync-ok{background:#1E8449;color:#fff}
+.sync-err{background:#C0392B;color:#fff;animation:pulse 1.5s infinite}
+.sync-wait{background:#566573;color:#fff}
+.sync-pending{background:#D4AC0D;color:#fff;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.offline-banner{background:#922B21;color:#fff;padding:8px 20px;font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;justify-content:center}
+.offline-banner.show{display:flex}
+.pending-banner{background:#D4AC0D;color:#fff;padding:8px 20px;font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;justify-content:space-between}
+.pending-banner.show{display:flex}
+.nav{background:#fff;border-bottom:1px solid var(--borde);display:flex;overflow-x:auto;padding:0 20px}
+.nav-btn{padding:14px 18px;border:none;background:none;font-size:13px;font-weight:500;color:var(--texto-sec);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all .15s}
+.nav-btn:hover{color:var(--texto)}
+.nav-btn.active{color:var(--rojo-dark);border-bottom-color:var(--rojo)}
+.main{padding:20px;max-width:960px;margin:0 auto}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;color:var(--gris);margin-bottom:16px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px}
+.card-title i{font-size:18px;color:var(--rojo)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.4px}
+.form-group input,.form-group select,.form-group textarea{border:1px solid var(--borde);border-radius:var(--radio);padding:9px 12px;font-size:14px;color:var(--texto);background:#fff;width:100%;transition:border .15s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--rojo)}
+.input-serie{border:2px solid var(--gris)!important;font-family:monospace;font-size:15px;font-weight:600;letter-spacing:1px}
+.input-serie:focus{border-color:var(--rojo)!important}
+.btn{padding:9px 18px;border-radius:var(--radio);border:none;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-primary{background:var(--rojo);color:#fff}.btn-primary:hover{background:var(--rojo-dark)}
+.btn-secondary{background:#fff;color:var(--gris);border:1px solid var(--borde)}.btn-secondary:hover{background:var(--gris-claro)}
+.btn-success{background:var(--verde);color:#fff}.btn-success:hover{background:#196F3D}
+.btn-warning{background:var(--amarillo);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.badge{display:inline-block;padding:3px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.badge-efectivo{background:var(--verde-light);color:var(--verde)}
+.badge-debito{background:var(--azul-light);color:var(--azul)}
+.badge-credito{background:var(--violeta-light);color:var(--violeta)}
+.badge-transferencia{background:var(--naranja-light);color:var(--naranja)}
+.badge-serie{background:var(--gris-claro);color:var(--gris);font-family:monospace;font-size:12px;padding:2px 7px;border-radius:3px;font-weight:700}
+.badge-offline{background:#FADBD8;color:#922B21;font-size:11px;padding:2px 7px;border-radius:3px;font-weight:700}
+.tabla{width:100%;border-collapse:collapse;font-size:13px}
+.tabla th{background:var(--gris-claro);padding:9px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--texto-sec);font-weight:600}
+.tabla td{padding:9px 12px;border-bottom:1px solid var(--borde)}
+.tabla tr:last-child td{border-bottom:none}
+.tabla tr:hover td{background:#FDFEFE}
+.tabla tr.pendiente td{background:#FEF9E7}
+.productos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.prod-card{border:2px solid var(--borde);border-radius:var(--radio);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;position:relative}
+.prod-card:hover{border-color:var(--rojo);background:var(--rojo-light)}
+.prod-card.selected{border-color:var(--rojo);background:var(--rojo-light)}
+.prod-card .prod-nombre{font-size:13px;font-weight:600;color:var(--texto);margin-bottom:4px}
+.prod-card .prod-precio{font-size:11px;color:var(--texto-sec)}
+.prod-card .prod-check{position:absolute;top:6px;right:6px;width:20px;height:20px;background:var(--rojo);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:11px}
+.prod-card.selected .prod-check{display:flex}
+.serie-block{border:2px solid var(--gris);border-radius:var(--radio);padding:14px;margin:12px 0}
+.serie-block-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gris);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.serie-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.serie-row{grid-template-columns:1fr}}
+.pago-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:4px}
+.pago-btn{border:2px solid var(--borde);border-radius:var(--radio);padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pago-btn i{font-size:22px;color:var(--gris-medio)}
+.pago-btn span{font-size:12px;font-weight:600;color:var(--texto-sec)}
+.pago-btn:hover{border-color:var(--gris);background:var(--gris-claro)}
+.pago-btn.sel-efectivo{border-color:var(--verde);background:var(--verde-light)}
+.pago-btn.sel-efectivo i,.pago-btn.sel-efectivo span{color:var(--verde)}
+.pago-btn.sel-debito{border-color:var(--azul);background:var(--azul-light)}
+.pago-btn.sel-debito i,.pago-btn.sel-debito span{color:var(--azul)}
+.pago-btn.sel-credito{border-color:var(--violeta);background:var(--violeta-light)}
+.pago-btn.sel-credito i,.pago-btn.sel-credito span{color:var(--violeta)}
+.pago-btn.sel-transferencia{border-color:var(--naranja);background:var(--naranja-light)}
+.pago-btn.sel-transferencia i,.pago-btn.sel-transferencia span{color:var(--naranja)}
+.fichaje-estado{text-align:center;padding:30px}
+.fichaje-tiempo{font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--gris);margin:10px 0}
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.resumen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:var(--radio);padding:16px;border:1px solid var(--borde);border-left:4px solid var(--rojo)}
+.stat-val{font-size:22px;font-weight:700;color:var(--gris)}
+.stat-label{font-size:11px;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.envase-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.envase-box{background:var(--gris-claro);border:1px solid var(--borde);border-radius:var(--radio);padding:12px 20px;text-align:center}
+.envase-num{font-size:24px;font-weight:700;color:var(--gris)}
+.envase-sub{font-size:11px;color:var(--texto-sec)}
+.flecha{color:var(--gris-medio);font-size:20px}
+.remito-num{font-size:11px;color:var(--texto-sec);font-family:monospace}
+.ticket{border:1px dashed var(--borde);border-radius:var(--radio);padding:16px;background:#FDFEFE;font-size:12px;line-height:1.8}
+.ticket-header{text-align:center;border-bottom:1px dashed var(--borde);padding-bottom:10px;margin-bottom:10px}
+.ticket-empresa{font-size:15px;font-weight:700;letter-spacing:2px}
+.ticket-row{display:flex;justify-content:space-between}
+.ticket-total{border-top:1px dashed var(--borde);margin-top:8px;padding-top:8px;font-weight:700;font-size:14px}
+.ticket-serie{font-family:monospace;font-size:11px;color:var(--gris-medio);background:var(--gris-claro);padding:4px 8px;border-radius:3px;margin:3px 0;display:block}
+.alerta{padding:10px 14px;border-radius:var(--radio);font-size:13px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.alerta-info{background:var(--azul-light);color:var(--azul)}
+.alerta-warn{background:var(--amarillo-light);color:var(--amarillo)}
+.alerta-ok{background:var(--verde-light);color:var(--verde)}
+.divider{border:none;border-top:1px solid var(--borde);margin:16px 0}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.flex-gap{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mt-1{margin-top:8px}.mt-2{margin-top:16px}
+.hidden{display:none!important}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.main{padding:12px}.nav-btn{padding:12px 10px;font-size:12px}.fichaje-tiempo{font-size:36px}}
+@media print{.app-header,.nav,.btn,.flex-gap,.offline-banner,.pending-banner{display:none!important}.ticket{border:none}}
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offline-banner">
+  <i class="ti ti-wifi-off"></i> Sin conexión a internet — los datos se guardan localmente y se sincronizarán automáticamente cuando vuelva la conexión
+</div>
+<div class="pending-banner" id="pending-banner">
+  <span><i class="ti ti-clock-upload"></i> <span id="pending-count">0</span> registros pendientes de sincronizar</span>
+  <button class="btn btn-sm" style="background:#fff;color:#D4AC0D;border:none" onclick="sincronizarPendientes()"><i class="ti ti-refresh"></i> Sincronizar ahora</button>
+</div>
+
+<div class="app-header">
+  <div class="app-logo">BAL<span>U</span>BE</div>
+  <div class="header-info">
+    <select id="sel-puesto" onchange="cambiarPuesto()">
+      <option value="Japon">Puesto Japón</option>
+      <option value="Circu">Puesto Circu</option>
+      <option value="Carcano">Puesto Carcano</option>
+    </select>
+    <span class="sync-pill sync-wait" id="sync-status" onclick="sincronizarPendientes()" title="Click para sincronizar">Conectando...</span>
+    <div class="clock" id="reloj">00:00:00</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="irA('venta',this)"><i class="ti ti-shopping-cart"></i> Nueva Venta</button>
+  <button class="nav-btn" onclick="irA('envases',this)"><i class="ti ti-package"></i> Envases</button>
+  <button class="nav-btn" onclick="irA('stock',this)"><i class="ti ti-box"></i> Stock</button>
+  <button class="nav-btn" onclick="irA('remitos',this)"><i class="ti ti-file-text"></i> Remitos</button>
+  <button class="nav-btn" onclick="irA('clientes',this)"><i class="ti ti-users"></i> Clientes</button>
+  <button class="nav-btn" onclick="irA('fichaje',this)"><i class="ti ti-clock"></i> Fichaje</button>
+  <button class="nav-btn" onclick="irA('dueno',this)" style="color:#E74C3C"><i class="ti ti-dashboard"></i> Panel Dueño</button>
+</nav>
+
+<div class="main">
+
+<!-- VENTA -->
+<div class="section active" id="sec-venta">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-shopping-cart"></i> Registrar Venta — <span class="lbl-puesto">Japón</span></div>
+    <div class="form-grid" style="margin-bottom:16px">
+      <div class="form-group"><label>Nombre del cliente</label><input type="text" id="cli-nombre" placeholder="Ej: Juan García"></div>
+      <div class="form-group"><label>Teléfono</label><input type="tel" id="cli-tel" placeholder="Ej: 351-123-4567"></div>
+      <div class="form-group"><label>Email (opcional)</label><input type="email" id="cli-email" placeholder="cliente@email.com"></div>
+      <div class="form-group"><label>Patente del vehículo</label><input type="text" id="cli-patente" placeholder="Ej: ABC123" style="text-transform:uppercase"></div>
+    </div>
+    <hr class="divider">
+    <div class="serie-block" style="background:var(--gris-claro)">
+      <div class="serie-block-title"><i class="ti ti-arrow-down-circle"></i> Envase que ENTRA (trae el cliente)</div>
+      <div class="serie-row">
+        <div class="form-group"><label><i class="ti ti-hash" style="font-size:13px;color:var(--rojo)"></i> N° de serie recibido</label><input type="text" id="serie-entrada" class="input-serie" placeholder="Ej: 987654" autocomplete="off"></div>
+        <div class="form-group"><label>Estado del envase</label><select id="envase-apto" onchange="checkApto()"><option value="">-- Verificar --</option><option value="apto">✅ Apto para recarga</option><option value="no">❌ No apto / rechazado</option></select></div>
+        <div class="form-group"><label>¿Requiere polvo extra?</label><select id="requiere-polvo" onchange="actualizarPolvo()"><option value="no">No</option><option value="si">Sí — cobrar Polvo aparte</option></select></div>
+        <div class="form-group"><label>Observación envase</label><input type="text" id="envase-obs" placeholder="Ej: válvula ok, sin golpes"></div>
+      </div>
+    </div>
+    <div id="alerta-polvo" class="alerta alerta-warn hidden"><i class="ti ti-alert-triangle"></i> Polvo marcado como necesario — agregá "Polvo" a los productos.</div>
+    <div id="alerta-no-apto" class="alerta alerta-warn hidden"><i class="ti ti-alert-triangle"></i> Envase NO apto — informar al cliente.</div>
+    <hr class="divider">
+    <div class="card-title" style="font-size:12px;margin-bottom:10px"><i class="ti ti-list"></i> Productos vendidos</div>
+    <div class="productos-grid" id="productos-grid"></div>
+    <div id="bloque-serie-salida" class="serie-block hidden" style="border-color:var(--verde);background:var(--verde-light)">
+      <div class="serie-block-title" style="color:var(--verde)"><i class="ti ti-arrow-up-circle"></i> Recambio / Nuevo que SALE</div>
+      <div class="serie-row">
+        <div class="form-group"><label><i class="ti ti-hash" style="font-size:13px;color:var(--verde)"></i> N° de serie entregado</label><input type="text" id="serie-salida" class="input-serie" placeholder="Ej: 123456" autocomplete="off" style="border-color:var(--verde)!important"></div>
+        <div class="form-group"><label>Vto. próxima recarga</label><input type="text" id="serie-vto" placeholder="Ej: 06/2027"></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="form-group" style="margin-bottom:16px">
+      <label>Método de pago</label>
+      <div class="pago-grid">
+        <div class="pago-btn" id="pago-efectivo" onclick="selPago('efectivo')"><i class="ti ti-cash"></i><span>Efectivo</span></div>
+        <div class="pago-btn" id="pago-debito" onclick="selPago('debito')"><i class="ti ti-credit-card"></i><span>Débito</span></div>
+        <div class="pago-btn" id="pago-credito" onclick="selPago('credito')"><i class="ti ti-cards"></i><span>Crédito</span></div>
+        <div class="pago-btn" id="pago-transferencia" onclick="selPago('transferencia')"><i class="ti ti-transfer"></i><span>Transferencia</span></div>
+      </div>
+      <div id="pago-seleccionado" style="margin-top:6px;font-size:12px;color:var(--texto-sec)">Sin método seleccionado</div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px"><label>Número de factura</label><input type="text" id="nro-factura" placeholder="Ej: 0001-00000045"></div>
+    <div style="background:var(--gris-claro);border-radius:var(--radio);padding:14px">
+      <div class="ticket-row" style="font-size:13px;margin-bottom:4px"><span>Productos:</span><span id="resumen-prods" style="color:var(--texto-sec)">—</span></div>
+      <div class="ticket-row" style="font-size:18px;font-weight:700"><span>TOTAL:</span><span id="total-venta" style="color:var(--rojo)">$0</span></div>
+    </div>
+    <div class="flex-gap mt-2">
+      <button class="btn btn-primary" id="btn-registrar" onclick="registrarVenta()"><i class="ti ti-check"></i> Registrar Venta</button>
+      <button class="btn btn-secondary" onclick="verTicket()"><i class="ti ti-printer"></i> Ver Ticket</button>
+      <button class="btn btn-secondary" onclick="limpiarVenta()"><i class="ti ti-x"></i> Limpiar</button>
+    </div>
+  </div>
+  <div class="card hidden" id="ticket-preview">
+    <div class="card-title"><i class="ti ti-printer"></i> Ticket / Comprobante</div>
+    <div class="ticket" id="ticket-contenido"></div>
+    <div class="flex-gap mt-2">
+      <button class="btn btn-primary" onclick="window.print()"><i class="ti ti-printer"></i> Imprimir</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('ticket-preview').classList.add('hidden')"><i class="ti ti-x"></i> Cerrar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-history"></i> Ventas del día — <span class="lbl-puesto">Japón</span></div>
+      <div class="flex-gap"><span id="total-dia" style="font-weight:700;color:var(--verde)">Total: $0</span><button class="btn btn-sm btn-secondary" onclick="cargarVentas()"><i class="ti ti-refresh"></i></button></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:12px">
+      <table class="tabla">
+        <thead><tr><th>#</th><th>Cliente / Patente</th><th>Serie entrada</th><th>Serie salida</th><th>Productos</th><th>Método</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-ventas"><tr><td colspan="8" style="text-align:center;color:var(--texto-sec);padding:20px">Sin ventas hoy</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ENVASES -->
+<div class="section" id="sec-envases">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-package"></i> Stock de Envases</div>
+    <div class="alerta alerta-info"><i class="ti ti-info-circle"></i> Los envases circulan entre los puestos y Vulcano. Se sincronizan automáticamente.</div>
+    <div class="envase-flow">
+      <div class="envase-box" style="border-color:var(--rojo);background:var(--rojo-light)"><div class="envase-num" id="env-japon" style="color:var(--rojo)">—</div><div class="envase-sub">Japón</div></div>
+      <div class="flecha">⇄</div>
+      <div class="envase-box" style="border-color:var(--rojo);background:var(--rojo-light)"><div class="envase-num" id="env-circu" style="color:var(--rojo)">—</div><div class="envase-sub">Circu</div></div>
+      <div class="flecha">⇄</div>
+      <div class="envase-box" style="border-color:var(--rojo);background:var(--rojo-light)"><div class="envase-num" id="env-carcano" style="color:var(--rojo)">—</div><div class="envase-sub">Carcano</div></div>
+      <div class="flecha">⇄</div>
+      <div class="envase-box"><div class="envase-num" id="env-vulcano">—</div><div class="envase-sub">Vulcano</div></div>
+      <div style="margin-left:auto;text-align:right"><div style="font-size:11px;color:var(--texto-sec)">TOTAL</div><div style="font-size:22px;font-weight:700" id="env-total">—</div></div>
+    </div>
+    <hr class="divider">
+    <div class="card-title" style="font-size:12px"><i class="ti ti-transfer"></i> Registrar Movimiento</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Origen</label><select id="env-origen"><option value="Japon">Japón</option><option value="Circu">Circu</option><option value="Carcano">Carcano</option><option value="Vulcano">Vulcano</option></select></div>
+      <div class="form-group"><label>Destino</label><select id="env-destino"><option value="Vulcano">Vulcano</option><option value="Japon">Japón</option><option value="Circu">Circu</option><option value="Carcano">Carcano</option></select></div>
+      <div class="form-group"><label>Cantidad</label><input type="number" id="env-cant" placeholder="Ej: 10" min="1"></div>
+      <div class="form-group"><label>Nro. Remito</label><input type="text" id="env-remito" placeholder="Ej: R-0042"></div>
+    </div>
+    <div class="form-group mt-1"><label>Observaciones</label><input type="text" id="env-obs"></div>
+    <button class="btn btn-primary mt-2" id="btn-env" onclick="registrarMovEnvase()"><i class="ti ti-check"></i> Registrar Movimiento</button>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-history"></i> Historial</div>
+      <button class="btn btn-sm btn-secondary" onclick="cargarEnvases()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Fecha/Hora</th><th>Origen</th><th>Destino</th><th>Cant.</th><th>Remito</th><th>Estado</th></tr></thead><tbody id="tbody-envases"><tr><td colspan="6" style="text-align:center;color:var(--texto-sec);padding:20px">Sin movimientos</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<!-- STOCK -->
+<div class="section" id="sec-stock">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-box"></i> Control de Stock — <span class="lbl-puesto">Japón</span></div>
+    <div class="stock-grid" id="stock-grid"></div>
+    <button class="btn btn-primary mt-2" id="btn-stock" onclick="guardarStock()"><i class="ti ti-device-floppy"></i> Guardar Stock</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-building-factory"></i> Stock en Fábrica / Proveedores</div>
+    <div class="form-grid" id="stock-fabrica-grid"></div>
+    <button class="btn btn-primary mt-2" id="btn-stock-fab" onclick="guardarStockFabrica()"><i class="ti ti-device-floppy"></i> Guardar</button>
+  </div>
+</div>
+
+<!-- REMITOS -->
+<div class="section" id="sec-remitos">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-file-text"></i> Nuevo Remito</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Tipo</label><select id="remito-tipo"><option value="envio">Envío a Fábrica</option><option value="recepcion">Recepción de Fábrica</option><option value="entre-puestos">Entre Puestos</option><option value="cliente">Entrega a Cliente</option></select></div>
+      <div class="form-group"><label>Proveedor / Destino</label><select id="remito-prov"><option>Vulcano</option><option>Giorgia</option><option>Puesto Japón</option><option>Puesto Circu</option><option>Puesto Carcano</option><option>Cliente</option></select></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="remito-fecha"></div>
+    </div>
+    <div class="form-group mt-1"><label>Detalle / Items</label><textarea id="remito-detalle" rows="3" placeholder="Ej: 15 envases 1kg..."></textarea></div>
+    <div class="form-group mt-1"><label>Observaciones</label><input type="text" id="remito-obs"></div>
+    <button class="btn btn-primary mt-2" id="btn-remito" onclick="generarRemito()"><i class="ti ti-file-plus"></i> Generar Remito</button>
+    <div id="remito-preview" class="hidden mt-2"><div class="ticket" id="remito-contenido"></div><button class="btn btn-secondary mt-1" onclick="window.print()"><i class="ti ti-printer"></i> Imprimir</button></div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-list"></i> Remitos Emitidos</div>
+      <button class="btn btn-sm btn-secondary" onclick="cargarRemitos()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Nro.</th><th>Fecha</th><th>Tipo</th><th>Destino</th><th>Estado</th></tr></thead><tbody id="tbody-remitos"><tr><td colspan="5" style="text-align:center;color:var(--texto-sec);padding:20px">Sin remitos</td></tr></tbody></table></div>
+  </div>
+</div>
+
+<!-- CLIENTES -->
+<div class="section" id="sec-clientes">
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-users"></i> Base de Clientes</div>
+      <button class="btn btn-sm btn-secondary" onclick="cargarClientes()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Patente</th><th>Puesto</th><th>Última compra</th><th>Total</th></tr></thead><tbody id="tbody-clientes"><tr><td colspan="7" style="text-align:center;color:var(--texto-sec);padding:20px">Cargando...</td></tr></tbody></table></div>
+    <div class="flex-gap mt-2"><button class="btn btn-secondary" onclick="exportarClientes()"><i class="ti ti-table-export"></i> Exportar CSV</button></div>
+  </div>
+</div>
+
+<!-- FICHAJE -->
+<div class="section" id="sec-fichaje">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-clock"></i> Control de Acceso — Fichaje</div>
+    <div class="fichaje-estado">
+      <div style="font-size:13px;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.5px">Hora actual</div>
+      <div class="fichaje-tiempo" id="fichaje-reloj">00:00:00</div>
+      <div class="form-group" style="max-width:280px;margin:0 auto 20px"><label>Empleado</label><input type="text" id="fichaje-nombre" placeholder="Tu nombre"></div>
+      <div class="flex-gap" style="justify-content:center">
+        <button class="btn btn-success" id="btn-entrada" onclick="fichar('entrada')"><i class="ti ti-login"></i> Marcar Entrada</button>
+        <button class="btn btn-warning" id="btn-salida" onclick="fichar('salida')"><i class="ti ti-logout"></i> Marcar Salida</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-history"></i> Registros de Hoy</div>
+      <button class="btn btn-sm btn-secondary" onclick="cargarFichajes()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <table class="tabla"><thead><tr><th>Empleado</th><th>Puesto</th><th>Tipo</th><th>Hora</th><th>Estado</th></tr></thead><tbody id="tbody-fichaje"><tr><td colspan="5" style="text-align:center;color:var(--texto-sec);padding:20px">Sin registros hoy</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- PANEL DUEÑO -->
+<div class="section" id="sec-dueno">
+  <div class="alerta alerta-warn"><i class="ti ti-lock"></i> Panel de dueño — vista consolidada en tiempo real</div>
+  <div class="resumen-grid">
+    <div class="stat-card"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Total vendido hoy</div></div>
+    <div class="stat-card" style="border-left-color:var(--verde)"><div class="stat-val" id="stat-efect">—</div><div class="stat-label">Efectivo</div></div>
+    <div class="stat-card" style="border-left-color:var(--azul)"><div class="stat-val" id="stat-deb">—</div><div class="stat-label">Débito</div></div>
+    <div class="stat-card" style="border-left-color:var(--violeta)"><div class="stat-val" id="stat-cred">—</div><div class="stat-label">Crédito</div></div>
+    <div class="stat-card" style="border-left-color:var(--naranja)"><div class="stat-val" id="stat-transf">—</div><div class="stat-label">Transferencia</div></div>
+    <div class="stat-card" style="border-left-color:var(--amarillo)"><div class="stat-val" id="stat-ventas">—</div><div class="stat-label">Ventas totales</div></div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><i class="ti ti-chart-bar"></i> Ventas por Puesto</div>
+      <button class="btn btn-sm btn-secondary" onclick="actualizarPanelDueno()"><i class="ti ti-refresh"></i> Actualizar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Puesto</th><th>Ventas</th><th>Efectivo</th><th>Débito</th><th>Crédito</th><th>Transferencia</th><th>Total</th></tr></thead><tbody id="tbody-por-puesto"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-hash"></i> Trazabilidad de Series — Hoy</div>
+    <div style="overflow-x:auto"><table class="tabla"><thead><tr><th>Hora</th><th>Puesto</th><th>Cliente</th><th>Patente</th><th>Serie entrada</th><th>Serie salida</th><th>Vto.</th></tr></thead><tbody id="tbody-series"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-package"></i> Stock de Envases</div>
+    <div class="envase-flow" id="dueno-envases"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-clock"></i> Fichajes del Día</div>
+    <table class="tabla"><thead><tr><th>Empleado</th><th>Puesto</th><th>Entrada</th><th>Salida</th><th>Horas</th></tr></thead><tbody id="tbody-dueno-fichaje"></tbody></table>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbwlo1kKxQHJ-fqtVuTlnhTIk4ZeSum-HWfWyxTHI6VrWV2Fzw2hG3eWS1CJ6gWX86rM/exec';
+const COLA_KEY='balube_cola_pendiente';
+const PRODUCTOS=[
+  {id:'recambio1',nombre:'Recambio 1kg',precioEfect:15000,precioDigit:17000,tieneSerie:true},
+  {id:'nuevo1',nombre:'Nuevo 1 Kg',precioEfect:50000,precioDigit:45000,tieneSerie:true},
+  {id:'baliza',nombre:'Baliza',precioEfect:15000,precioDigit:17000,tieneSerie:false},
+  {id:'polvo',nombre:'Polvo',precioEfect:4500,precioDigit:5000,tieneSerie:false},
+  {id:'kit',nombre:'Kit Seguridad',precioEfect:28000,precioDigit:28000,tieneSerie:false},
+  {id:'fundas',nombre:'Fundas',precioEfect:null,precioDigit:null,tieneSerie:false},
+];
+const esDigital=m=>['debito','credito','transferencia'].includes(m);
+const PAGO_LABELS={efectivo:'Efectivo',debito:'Débito',credito:'Crédito',transferencia:'Transferencia'};
+const PAGO_BADGE={efectivo:'badge-efectivo',debito:'badge-debito',credito:'badge-credito',transferencia:'badge-transferencia'};
+
+let estado={puesto:'Japon',metodoPago:null,seleccionados:{},ventasLocales:[],remitoNum:1,stockLocal:{},stockFabricaLocal:{Giorgia:{},Vulcano:{}},online:navigator.onLine};
+
+// ===== COLA OFFLINE =====
+function getCola(){try{return JSON.parse(localStorage.getItem(COLA_KEY)||'[]');}catch{return[];}}
+function setCola(cola){localStorage.setItem(COLA_KEY,JSON.stringify(cola));}
+function agregarACola(data){const cola=getCola();cola.push({...data,_ts:Date.now()});setCola(cola);actualizarBannerPendiente();}
+function actualizarBannerPendiente(){
+  const cola=getCola();
+  const banner=document.getElementById('pending-banner');
+  document.getElementById('pending-count').textContent=cola.length;
+  banner.classList.toggle('show',cola.length>0);
+  const pill=document.getElementById('sync-status');
+  if(!estado.online){pill.textContent='Sin conexión';pill.className='sync-pill sync-err';}
+  else if(cola.length>0){pill.textContent=`${cola.length} pendiente${cola.length>1?'s':''}`;pill.className='sync-pill sync-pending';}
+  else{pill.textContent='✓ Sincronizado';pill.className='sync-pill sync-ok';}
+}
+
+async function sincronizarPendientes(){
+  if(!navigator.onLine)return;
+  const cola=getCola();
+  if(!cola.length)return;
+  let exito=0;const nuevaCola=[];
+  for(const item of cola){
+    try{
+      await apiPost(item);
+      exito++;
+    }catch(e){nuevaCola.push(item);}
+  }
+  setCola(nuevaCola);
+  actualizarBannerPendiente();
+  if(exito>0){
+    cargarVentas();
+    alert(`✅ ${exito} registro${exito>1?'s':''} sincronizado${exito>1?'s':''} con Google Sheets`);
+  }
+}
+
+// ===== CONEXIÓN =====
+window.addEventListener('online',()=>{estado.online=true;document.getElementById('offline-banner').classList.remove('show');actualizarBannerPendiente();sincronizarPendientes();});
+window.addEventListener('offline',()=>{estado.online=false;document.getElementById('offline-banner').classList.add('show');actualizarBannerPendiente();});
+
+// ===== UTILS =====
+function fmt(n){return n==null||n===''?'—':'$'+Number(n).toLocaleString('es-AR')}
+function ahora(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function hoy(){return new Date().toLocaleDateString('es-AR')}
+function setBtnLoading(id,loading){const btn=document.getElementById(id);if(!btn)return;if(loading){btn.disabled=true;btn.dataset.orig=btn.innerHTML;btn.innerHTML='<span class="spinner"></span> Guardando...';}else{btn.disabled=false;if(btn.dataset.orig)btn.innerHTML=btn.dataset.orig;}}
+
+async function apiPost(data){
+  const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(data)});
+  return await r.json();
+}
+async function apiGet(params){
+  const url=new URL(API_URL);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.append(k,v));
+  const r=await fetch(url.toString());
+  return await r.json();
+}
+
+async function guardarOEncolar(data,btnId){
+  setBtnLoading(btnId,true);
+  if(navigator.onLine){
+    try{
+      await apiPost(data);
+      actualizarBannerPendiente();
+      setBtnLoading(btnId,false);
+      return true;
+    }catch(e){/* caer a offline */}
+  }
+  // Sin conexión — guardar en cola
+  agregarACola(data);
+  setBtnLoading(btnId,false);
+  return false;
+}
+
+// ===== RELOJ =====
+function reloj(){const t=ahora();document.getElementById('reloj').textContent=t;document.getElementById('fichaje-reloj').textContent=t;}
+setInterval(reloj,1000);reloj();
+
+// ===== NAV =====
+function irA(sec,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(sec==='dueno')actualizarPanelDueno();
+  if(sec==='stock')renderStock();
+  if(sec==='clientes')cargarClientes();
+  if(sec==='envases')cargarEnvases();
+  if(sec==='remitos')cargarRemitos();
+  if(sec==='fichaje')cargarFichajes();
+}
+function cambiarPuesto(){
+  estado.puesto=document.getElementById('sel-puesto').value;
+  document.querySelectorAll('.lbl-puesto').forEach(el=>el.textContent=estado.puesto);
+  cargarVentas();
+}
+
+// ===== PAGO / PRODUCTOS =====
+function selPago(m){estado.metodoPago=m;['efectivo','debito','credito','transferencia'].forEach(x=>document.getElementById('pago-'+x).className='pago-btn'+(x===m?' sel-'+m:''));document.getElementById('pago-seleccionado').textContent='Seleccionado: '+PAGO_LABELS[m];renderProductos();}
+function getPrecio(p){if(!estado.metodoPago)return p.precioEfect;return esDigital(estado.metodoPago)?p.precioDigit:p.precioEfect;}
+function tieneSerieSalida(){return estado.seleccionados['recambio1']||estado.seleccionados['nuevo1'];}
+function renderProductos(){
+  document.getElementById('productos-grid').innerHTML=PRODUCTOS.map(p=>{const precio=getPrecio(p);const sel=estado.seleccionados[p.id];return`<div class="prod-card${sel?' selected':''}" onclick="toggleProd('${p.id}')"><div class="prod-check"><i class="ti ti-check"></i></div><div class="prod-nombre">${p.nombre}</div><div class="prod-precio">${precio?fmt(precio):'Sin precio'}</div>${sel?`<div style="margin-top:6px;display:flex;align-items:center;gap:4px;justify-content:center"><button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();cambiarCant('${p.id}',-1)">−</button><span style="font-weight:700;font-size:15px">${sel}</span><button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();cambiarCant('${p.id}',1)">+</button></div>`:''}</div>`;}).join('');
+  document.getElementById('bloque-serie-salida').classList.toggle('hidden',!tieneSerieSalida());
+  actualizarTotal();
+}
+function toggleProd(id){if(estado.seleccionados[id])delete estado.seleccionados[id];else estado.seleccionados[id]=1;renderProductos();}
+function cambiarCant(id,d){estado.seleccionados[id]=(estado.seleccionados[id]||0)+d;if(estado.seleccionados[id]<=0)delete estado.seleccionados[id];renderProductos();}
+function actualizarTotal(){let total=0;const names=[];PRODUCTOS.forEach(p=>{const c=estado.seleccionados[p.id];if(c){const pr=getPrecio(p);if(pr)total+=pr*c;names.push(`${p.nombre}×${c}`);}});document.getElementById('total-venta').textContent=fmt(total);document.getElementById('resumen-prods').textContent=names.join(', ')||'—';}
+function actualizarPolvo(){document.getElementById('alerta-polvo').classList.toggle('hidden',document.getElementById('requiere-polvo').value!=='si');}
+function checkApto(){document.getElementById('alerta-no-apto').classList.toggle('hidden',document.getElementById('envase-apto').value!=='no');}
+
+// ===== VENTA =====
+async function registrarVenta(){
+  if(!estado.metodoPago){alert('Seleccioná un método de pago');return;}
+  if(!Object.keys(estado.seleccionados).length){alert('Seleccioná al menos un producto');return;}
+  if(tieneSerieSalida()&&!document.getElementById('serie-salida').value.trim()){alert('Ingresá el N° de serie del recambio/nuevo que entregás al cliente');return;}
+  const nombre=document.getElementById('cli-nombre').value.trim()||'Sin nombre';
+  const tel=document.getElementById('cli-tel').value.trim();
+  const email=document.getElementById('cli-email').value.trim();
+  const patente=document.getElementById('cli-patente').value.trim().toUpperCase();
+  const factura=document.getElementById('nro-factura').value.trim();
+  const serieEntrada=document.getElementById('serie-entrada').value.trim();
+  const serieSalida=document.getElementById('serie-salida').value.trim();
+  const serieVto=document.getElementById('serie-vto').value.trim();
+  const apto=document.getElementById('envase-apto').value;
+  let total=0;const items=[];
+  PRODUCTOS.forEach(p=>{const c=estado.seleccionados[p.id];if(c){const pr=getPrecio(p);total+=(pr||0)*c;items.push({nombre:p.nombre,cant:c,precio:pr,subtotal:(pr||0)*c});}});
+  const venta={accion:'registrarVenta',id:Date.now(),fecha:hoy(),hora:ahora(),puesto:estado.puesto,cliente:nombre,tel,email,patente,metodo:estado.metodoPago,items,total,factura,serieEntrada,serieSalida,serieVto,envaseApto:apto};
+  const online=await guardarOEncolar(venta,'btn-registrar');
+  // guardar cliente también
+  if(nombre!=='Sin nombre'||tel){
+    const cli={accion:'registrarCliente',nombre,tel,email,patente,puesto:estado.puesto,ultCompra:hoy(),totalCompras:total};
+    if(online)try{await apiPost(cli);}catch(e){agregarACola(cli);}
+    else agregarACola(cli);
+  }
+  // agregar a lista local para mostrar inmediatamente
+  estado.ventasLocales.unshift({...venta,_pendiente:!online});
+  renderVentasLocales();
+  limpiarVenta();
+  if(online)alert(`✅ Venta guardada en Google Sheets — ${fmt(total)}`);
+  else alert(`⚠️ Sin conexión — venta guardada localmente (${fmt(total)})\nSe sincronizará automáticamente cuando vuelva internet.`);
+}
+
+async function cargarVentas(){
+  if(!navigator.onLine){renderVentasLocales();return;}
+  try{
+    const r=await apiGet({accion:'getVentas',puesto:estado.puesto,fecha:hoy()});
+    if(r.status==='ok'&&r.data){
+      // Combinar datos del sheet con pendientes locales
+      const pendientes=estado.ventasLocales.filter(v=>v._pendiente);
+      estado.ventasLocales=[...r.data.map(v=>({...v,_pendiente:false})),...pendientes];
+      renderVentasLocales();
+    }
+  }catch(e){renderVentasLocales();}
+}
+
+function renderVentasLocales(){
+  const tbody=document.getElementById('tbody-ventas');
+  const ventas=estado.ventasLocales;
+  if(!ventas.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--texto-sec);padding:20px">Sin ventas hoy</td></tr>';document.getElementById('total-dia').textContent='Total: $0';return;}
+  let totalDia=0;
+  tbody.innerHTML=ventas.map((v,i)=>{
+    const t=Number(v.total||v['Total'])||0;totalDia+=t;
+    const m=v.metodo||v['Método Pago']||'';
+    const cli=v.cliente||v['Cliente']||'';
+    const pat=v.patente||v['Patente']||'';
+    const se=v.serieEntrada||v['Serie Entrada']||'';
+    const ss=v.serieSalida||v['Serie Salida']||'';
+    const prods=v.items?v.items.map(it=>`${it.nombre}×${it.cant}`).join(', '):(v['Productos']||'');
+    const pend=v._pendiente;
+    return`<tr class="${pend?'pendiente':''}">
+      <td>${i+1}</td>
+      <td><strong>${cli}</strong>${pat?`<br><span class="badge-serie">${pat}</span>`:''}</td>
+      <td>${se?`<span class="badge-serie">${se}</span>`:'—'}</td>
+      <td>${ss?`<span class="badge-serie">${ss}</span>`:'—'}</td>
+      <td style="font-size:12px">${prods}</td>
+      <td><span class="badge ${PAGO_BADGE[m]||''}">${PAGO_LABELS[m]||m}</span></td>
+      <td><strong>${fmt(t)}</strong></td>
+      <td>${pend?'<span class="badge-offline">⏳ Pendiente</span>':'<span class="badge badge-efectivo">✓</span>'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-dia').textContent=`Total: ${fmt(totalDia)}`;
+}
+
+function verTicket(){
+  if(!Object.keys(estado.seleccionados).length){alert('Seleccioná productos primero');return;}
+  const items=[];let total=0;
+  PRODUCTOS.forEach(p=>{const c=estado.seleccionados[p.id];if(c){const pr=getPrecio(p);total+=(pr||0)*c;items.push({nombre:p.nombre,cant:c,precio:pr,subtotal:(pr||0)*c});}});
+  generarContenidoTicket({cliente:document.getElementById('cli-nombre').value.trim()||'Sin nombre',patente:document.getElementById('cli-patente').value.trim().toUpperCase(),metodo:estado.metodoPago||'efectivo',items,total,factura:document.getElementById('nro-factura').value.trim(),hora:ahora(),fecha:hoy(),puesto:estado.puesto,serieEntrada:document.getElementById('serie-entrada').value.trim(),serieSalida:document.getElementById('serie-salida').value.trim(),serieVto:document.getElementById('serie-vto').value.trim()});
+  document.getElementById('ticket-preview').classList.remove('hidden');
+}
+function generarContenidoTicket(v){
+  document.getElementById('ticket-contenido').innerHTML=`<div class="ticket-header"><div class="ticket-empresa">BALUBE</div><div>Puesto: ${v.puesto} | ${v.fecha} — ${v.hora}</div>${v.factura?`<div>Factura: ${v.factura}</div>`:''}</div><div>Cliente: <strong>${v.cliente||''}</strong></div>${v.patente?`<div>Patente: <strong>${v.patente}</strong></div>`:''}<br>${(v.items||[]).map(it=>`<div class="ticket-row"><span>${it.nombre} ×${it.cant}</span><span>${fmt(it.subtotal)}</span></div>`).join('')}<div class="ticket-total ticket-row"><span>TOTAL</span><span>${fmt(v.total)}</span></div><div style="margin-top:6px;font-size:11px">Método: <strong>${PAGO_LABELS[v.metodo]||v.metodo||''}</strong></div>${v.serieEntrada||v.serieSalida?`<br><div style="font-size:11px;font-weight:600">Trazabilidad:</div>${v.serieEntrada?`<span class="ticket-serie">Envase recibido N° serie: ${v.serieEntrada}</span>`:''}${v.serieSalida?`<span class="ticket-serie">Recambio entregado N° serie: ${v.serieSalida}</span>`:''}${v.serieVto?`<span class="ticket-serie">Próxima recarga: ${v.serieVto}</span>`:''}`:''}  <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--texto-sec)">¡Gracias por su compra!</div>`;
+}
+function limpiarVenta(){
+  estado.seleccionados={};estado.metodoPago=null;
+  ['cli-nombre','cli-tel','cli-email','cli-patente','nro-factura','envase-obs','serie-entrada','serie-salida','serie-vto'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('envase-apto').value='';document.getElementById('requiere-polvo').value='no';
+  ['efectivo','debito','credito','transferencia'].forEach(m=>document.getElementById('pago-'+m).className='pago-btn');
+  document.getElementById('pago-seleccionado').textContent='Sin método seleccionado';
+  document.getElementById('alerta-polvo').classList.add('hidden');document.getElementById('alerta-no-apto').classList.add('hidden');
+  document.getElementById('ticket-preview').classList.add('hidden');renderProductos();
+}
+
+// ===== ENVASES =====
+async function cargarEnvases(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await apiGet({accion:'getEnvases'});
+    if(r.status==='ok'&&r.data){
+      const d=r.data;
+      ['Japon','Circu','Carcano','Vulcano'].forEach(p=>{const el=document.getElementById('env-'+p.toLowerCase());if(el)el.textContent=d[p]||0;});
+      document.getElementById('env-total').textContent=Object.values(d).reduce((a,b)=>a+Number(b),0);
+    }
+  }catch(e){}
+}
+async function registrarMovEnvase(){
+  const origen=document.getElementById('env-origen').value,destino=document.getElementById('env-destino').value;
+  const cant=parseInt(document.getElementById('env-cant').value)||0;
+  const remito=document.getElementById('env-remito').value.trim(),obs=document.getElementById('env-obs').value.trim();
+  if(!cant||cant<=0){alert('Ingresá una cantidad válida');return;}
+  if(origen===destino){alert('Origen y destino no pueden ser iguales');return;}
+  const data={accion:'movEnvase',fecha:hoy(),hora:ahora(),origen,destino,cant,remito,obs};
+  const online=await guardarOEncolar(data,'btn-env');
+  ['env-cant','env-remito','env-obs'].forEach(id=>document.getElementById(id).value='');
+  // Actualizar UI local
+  const tbody=document.getElementById('tbody-envases');
+  const filaExistente=tbody.querySelector('td[colspan]');
+  if(filaExistente)tbody.innerHTML='';
+  tbody.insertAdjacentHTML('afterbegin',`<tr class="${online?'':'pendiente'}"><td>${hoy()} ${ahora()}</td><td>${origen}</td><td>${destino}</td><td><strong>${cant}</strong></td><td class="remito-num">${remito||'—'}</td><td>${online?'<span class="badge badge-efectivo">✓</span>':'<span class="badge-offline">⏳ Pendiente</span>'}</td></tr>`);
+  if(online)await cargarEnvases();
+  alert(online?`✅ Movimiento registrado: ${cant} envases ${origen} → ${destino}`:`⚠️ Sin conexión — movimiento guardado localmente. Se sincronizará cuando vuelva internet.`);
+}
+
+// ===== STOCK =====
+function renderStock(){
+  const p=estado.puesto;
+  document.getElementById('stock-grid').innerHTML=PRODUCTOS.map(pr=>`<div style="background:#fff;border:1px solid var(--borde);border-radius:var(--radio);padding:14px"><div class="form-group"><label>${pr.nombre}</label><input type="number" min="0" id="stk-${pr.id}" value="${estado.stockLocal[pr.id]||0}" onchange="estado.stockLocal['${pr.id}']=parseInt(this.value)||0"></div></div>`).join('');
+  document.getElementById('stock-fabrica-grid').innerHTML=['Giorgia','Vulcano'].map(prov=>`<div class="form-group"><label style="color:var(--texto);font-weight:600;font-size:13px">${prov}</label>${PRODUCTOS.filter(pr=>pr.id!=='fundas').map(pr=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px">${pr.nombre}</span><input type="number" min="0" style="width:80px" value="${(estado.stockFabricaLocal[prov]&&estado.stockFabricaLocal[prov][pr.id])||0}" onchange="if(!estado.stockFabricaLocal['${prov}'])estado.stockFabricaLocal['${prov}']={};estado.stockFabricaLocal['${prov}']['${pr.id}']=parseInt(this.value)||0"></div>`).join('')}</div>`).join('');
+}
+async function guardarStock(){
+  const items=PRODUCTOS.map(p=>({nombre:p.nombre,cantidad:estado.stockLocal[p.id]||0,tipo:'local'}));
+  const online=await guardarOEncolar({accion:'guardarStock',puesto:estado.puesto,items},'btn-stock');
+  alert(online?'✅ Stock guardado en Google Sheets':'⚠️ Sin conexión — stock guardado localmente. Se sincronizará cuando vuelva internet.');
+}
+async function guardarStockFabrica(){
+  for(const prov of ['Giorgia','Vulcano']){
+    const items=PRODUCTOS.filter(p=>p.id!=='fundas').map(p=>({nombre:p.nombre,cantidad:(estado.stockFabricaLocal[prov]&&estado.stockFabricaLocal[prov][p.id])||0,tipo:'fabrica'}));
+    await guardarOEncolar({accion:'guardarStock',puesto:prov,items},'btn-stock-fab');
+  }
+  alert(navigator.onLine?'✅ Stock de fábrica guardado en Google Sheets':'⚠️ Sin conexión — guardado localmente. Se sincronizará cuando vuelva internet.');
+}
+
+// ===== REMITOS =====
+async function generarRemito(){
+  const tipo=document.getElementById('remito-tipo').value,prov=document.getElementById('remito-prov').value;
+  const fecha=document.getElementById('remito-fecha').value||hoy(),detalle=document.getElementById('remito-detalle').value.trim(),obs=document.getElementById('remito-obs').value.trim();
+  if(!detalle){alert('Completá el detalle del remito');return;}
+  const num=`R-${String(estado.remitoNum).padStart(4,'0')}`;estado.remitoNum++;
+  const tipos={envio:'Envío a Fábrica',recepcion:'Recepción de Fábrica','entre-puestos':'Entre Puestos',cliente:'Entrega a Cliente'};
+  const data={accion:'guardarRemito',num,fecha,tipo:tipos[tipo],destino:prov,puesto:estado.puesto,detalle,obs};
+  const online=await guardarOEncolar(data,'btn-remito');
+  document.getElementById('remito-contenido').innerHTML=`<div class="ticket-header"><div class="ticket-empresa">BALUBE — REMITO ${num}</div><div>Fecha: ${fecha} | Puesto: ${estado.puesto}</div>${!online?'<div style="color:#C0392B;font-weight:700">⚠️ Pendiente de sincronizar</div>':''}</div><div class="ticket-row"><span>Tipo:</span><span>${tipos[tipo]}</span></div><div class="ticket-row"><span>Destino/Origen:</span><span>${prov}</span></div><br><div style="font-weight:600">Detalle:</div><div>${detalle}</div>${obs?`<br><div><em>Obs: ${obs}</em></div>`:''}<div style="margin-top:20px;display:flex;justify-content:space-between;font-size:11px"><div>Firma recibe: _______________</div><div>Firma entrega: _______________</div></div>`;
+  document.getElementById('remito-preview').classList.remove('hidden');
+  if(online)cargarRemitos();
+}
+async function cargarRemitos(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await apiGet({accion:'getRemitos'});
+    if(r.status==='ok'&&r.data&&r.data.length){
+      document.getElementById('tbody-remitos').innerHTML=[...r.data].reverse().map(r=>`<tr><td class="remito-num">${r['Número']||''}</td><td>${r['Fecha']||''}</td><td>${r['Tipo']||''}</td><td>${r['Destino']||''}</td><td><span class="badge badge-efectivo">${r['Estado']||'Emitido'}</span></td></tr>`).join('');
+    }
+  }catch(e){}
+}
+
+// ===== CLIENTES =====
+async function cargarClientes(){
+  if(!navigator.onLine){document.getElementById('tbody-clientes').innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--texto-sec);padding:20px">Sin conexión — los clientes se verán cuando vuelva internet</td></tr>';return;}
+  try{
+    const r=await apiGet({accion:'getClientes'});
+    const tbody=document.getElementById('tbody-clientes');
+    if(r.status==='ok'&&r.data&&r.data.length){tbody.innerHTML=r.data.map(c=>`<tr><td><strong>${c['Nombre']||''}</strong></td><td>${c['Teléfono']||'—'}</td><td>${c['Email']||'—'}</td><td>${c['Patente']?`<span class="badge-serie">${c['Patente']}</span>`:'—'}</td><td>${c['Puesto']||''}</td><td>${c['Última Compra']||'—'}</td><td>${fmt(c['Total Compras'])}</td></tr>`).join('');}
+    else tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--texto-sec);padding:20px">Sin clientes registrados</td></tr>';
+  }catch(e){}
+}
+function exportarClientes(){const rows=document.querySelectorAll('#tbody-clientes tr');if(!rows.length||rows[0].cells.length===1){alert('No hay clientes para exportar');return;}let csv='Nombre,Teléfono,Email,Patente,Puesto,Última compra,Total\n';rows.forEach(r=>{csv+=Array.from(r.cells).map(c=>'"'+c.innerText.trim()+'"').join(',')+'\n';});const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='clientes_balube.csv';a.click();}
+
+// ===== FICHAJE =====
+async function fichar(tipo){
+  const nombre=document.getElementById('fichaje-nombre').value.trim();
+  if(!nombre){alert('Ingresá tu nombre');return;}
+  const data={accion:'fichar',nombre,puesto:estado.puesto,tipo,hora:ahora(),fecha:hoy()};
+  const btnId=tipo==='entrada'?'btn-entrada':'btn-salida';
+  const online=await guardarOEncolar(data,btnId);
+  // Mostrar en tabla local inmediatamente
+  const tbody=document.getElementById('tbody-fichaje');
+  const sinReg=tbody.querySelector('td[colspan]');
+  if(sinReg)tbody.innerHTML='';
+  tbody.insertAdjacentHTML('afterbegin',`<tr class="${online?'':'pendiente'}"><td><strong>${nombre}</strong></td><td>${estado.puesto}</td><td><span class="badge ${tipo==='entrada'?'badge-efectivo':'badge-transferencia'}">${tipo==='entrada'?'Entrada':'Salida'}</span></td><td>${ahora()}</td><td>${online?'<span class="badge badge-efectivo">✓</span>':'<span class="badge-offline">⏳ Pendiente</span>'}</td></tr>`);
+  alert(online?`✅ ${tipo==='entrada'?'Entrada':'Salida'} registrada — ${nombre} — ${ahora()}`:`⚠️ Sin conexión — fichaje guardado localmente. Se sincronizará cuando vuelva internet.`);
+}
+async function cargarFichajes(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await apiGet({accion:'getFichajes',fecha:hoy()});
+    const tbody=document.getElementById('tbody-fichaje');
+    if(r.status==='ok'&&r.data&&r.data.length){tbody.innerHTML=[...r.data].reverse().map(f=>`<tr><td><strong>${f['Nombre']||''}</strong></td><td>${f['Puesto']||''}</td><td><span class="badge ${f['Tipo']==='entrada'?'badge-efectivo':'badge-transferencia'}">${f['Tipo']==='entrada'?'Entrada':'Salida'}</span></td><td>${f['Hora']||''}</td><td><span class="badge badge-efectivo">✓</span></td></tr>`).join('');}
+    else tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--texto-sec);padding:20px">Sin registros hoy</td></tr>';
+  }catch(e){}
+}
+
+// ===== PANEL DUEÑO =====
+async function actualizarPanelDueno(){
+  if(!navigator.onLine){alert('Sin conexión — el panel dueño requiere internet');return;}
+  try{
+    const r=await apiGet({accion:'getResumenDueno',fecha:hoy()});
+    if(r.status==='ok'&&r.data){
+      const{totales,porPuesto,ventas}=r.data;
+      document.getElementById('stat-total').textContent=fmt(totales.total);
+      document.getElementById('stat-efect').textContent=fmt(totales.efectivo);
+      document.getElementById('stat-deb').textContent=fmt(totales.debito);
+      document.getElementById('stat-cred').textContent=fmt(totales.credito);
+      document.getElementById('stat-transf').textContent=fmt(totales.transferencia);
+      document.getElementById('stat-ventas').textContent=ventas.length;
+      document.getElementById('tbody-por-puesto').innerHTML=['Japon','Circu','Carcano'].map(p=>{const d=porPuesto[p]||{ventas:0,total:0,efectivo:0,debito:0,credito:0,transferencia:0};return`<tr><td><strong>${p}</strong></td><td>${d.ventas}</td><td>${fmt(d.efectivo)}</td><td>${fmt(d.debito)}</td><td>${fmt(d.credito)}</td><td>${fmt(d.transferencia)}</td><td><strong>${fmt(d.total)}</strong></td></tr>`;}).join('');
+      const series=ventas.filter(v=>v['Serie Entrada']||v['Serie Salida']);
+      document.getElementById('tbody-series').innerHTML=series.length?series.map(v=>`<tr><td>${v['Hora']||''}</td><td>${v['Puesto']||''}</td><td>${v['Cliente']||''}</td><td>${v['Patente']?`<span class="badge-serie">${v['Patente']}</span>`:'—'}</td><td>${v['Serie Entrada']?`<span class="badge-serie">${v['Serie Entrada']}</span>`:'—'}</td><td>${v['Serie Salida']?`<span class="badge-serie">${v['Serie Salida']}</span>`:'—'}</td><td>${v['Vto Recarga']||'—'}</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--texto-sec);padding:16px">Sin series hoy</td></tr>';
+    }
+    const re=await apiGet({accion:'getEnvases'});
+    if(re.status==='ok'&&re.data){document.getElementById('dueno-envases').innerHTML=Object.entries(re.data).map(([p,n])=>`<div class="envase-box" style="${p!=='Vulcano'?'border-color:var(--rojo);background:var(--rojo-light)':''}"><div class="envase-num" style="${p!=='Vulcano'?'color:var(--rojo)':''}">${n}</div><div class="envase-sub">${p}</div></div>`).join('<div class="flecha">⇄</div>');}
+    const rf=await apiGet({accion:'getFichajes',fecha:hoy()});
+    if(rf.status==='ok'&&rf.data){
+      const emps={};rf.data.forEach(f=>{const k=(f['Nombre']||'')+(f['Puesto']||'');if(!emps[k])emps[k]={nombre:f['Nombre'],puesto:f['Puesto'],entrada:null,salida:null};if(f['Tipo']==='entrada'&&!emps[k].entrada)emps[k].entrada=f['Hora'];if(f['Tipo']==='salida')emps[k].salida=f['Hora'];});
+      const filas=Object.values(emps);
+      document.getElementById('tbody-dueno-fichaje').innerHTML=filas.length?filas.map(e=>`<tr><td><strong>${e.nombre}</strong></td><td>${e.puesto}</td><td>${e.entrada||'—'}</td><td>${e.salida||'—'}</td><td>${e.entrada&&e.salida?calcH(e.entrada,e.salida):'En curso'}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--texto-sec);padding:16px">Sin fichajes hoy</td></tr>';
+    }
+  }catch(e){console.error(e);}
+}
+function calcH(e,s){try{const[h1,m1,s1]=e.split(':').map(Number);const[h2,m2,s2]=s.split(':').map(Number);const d=(h2*3600+m2*60+s2)-(h1*3600+m1*60+s1);return`${Math.floor(d/3600)}h ${Math.floor((d%3600)/60)}m`;}catch{return'—';}}
+
+// ===== INIT =====
+renderProductos();
+document.getElementById('remito-fecha').value=new Date().toISOString().split('T')[0];
+document.querySelectorAll('.lbl-puesto').forEach(el=>el.textContent=estado.puesto);
+if(!navigator.onLine){document.getElementById('offline-banner').classList.add('show');}
+actualizarBannerPendiente();
+cargarVentas();
+cargarEnvases();
+// Intentar sincronizar al cargar si hay pendientes
+if(navigator.onLine&&getCola().length>0)sincronizarPendientes();
+// Sincronización automática cada 2 minutos
+setInterval(()=>{if(navigator.onLine&&getCola().length>0)sincronizarPendientes();},120000);
+</script>
+</body>
+</html>
